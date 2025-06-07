@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  nginx:
+    build:
+      context: ../../
+      dockerfile: docker/dev/nginx/Dockerfile
+    container_name: dev_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../:/var/www/app
+      - puma_socket:/var/www/app/tmp/sockets
+    depends_on:
+      - app
+  
+  app:
+    build:
+      context: ../../
+      dockerfile: docker/dev/app/Dockerfile
+    container_name: app_ruby
+    volumes:
+      - ../../:/var/www/app
+      - puma_socket:/var/www/app/tmp/sockets
+    depends_on:
+      - db
+      - redis
+
+  db:
+    build:
+      context: ../../
+      dockerfile: docker/dev/mysql/Dockerfile
+    container_name: db_mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/db_data:/var/lib/mysql
+      
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/db_data:/data
+
+volumes:
+  puma_socket:
